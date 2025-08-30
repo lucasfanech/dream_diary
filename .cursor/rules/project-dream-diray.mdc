@@ -1,0 +1,253 @@
+# Dream Diary - Configuration Cursor Rules
+# Application Flutter de Journal de Rêves avec IA
+
+## CONTEXTE DU PROJET
+Tu développes "Dream Diary", une app Flutter de journal de rêves utilisant l'IA Google Gemini.
+- Architecture 100% client-side (pas de backend)
+- Stockage local avec Hive/SQLite
+- IA: Gemini 2.5 Flash (texte) + Gemini 2.5 Flash Image (images)
+- Transcription: Speech-to-Text natif Flutter
+- Modèle premium avec achat unique (pas d'abonnement)
+
+## STACK TECHNIQUE OBLIGATOIRE
+- Flutter (dernière version stable)
+- Dart 3.0+
+- Provider ou Riverpod pour state management
+- Hive pour base de données locale
+- Google AI Dart SDK pour Gemini
+- speech_to_text pour audio
+- fl_chart pour graphiques
+
+## ARCHITECTURE À RESPECTER
+
+```
+lib/
+├── core/
+│   ├── constants/
+│   │   ├── app_constants.dart
+│   │   ├── ai_prompts.dart
+│   │   └── theme_constants.dart
+│   ├── services/
+│   │   ├── gemini_service.dart
+│   │   ├── storage_service.dart
+│   │   ├── speech_service.dart
+│   │   └── purchase_service.dart
+│   ├── utils/
+│   │   ├── date_helpers.dart
+│   │   ├── validation.dart
+│   │   └── formatters.dart
+│   └── errors/
+│       └── app_exceptions.dart
+├── features/
+│   ├── dreams/
+│   │   ├── models/
+│   │   ├── providers/
+│   │   ├── screens/
+│   │   └── widgets/
+│   ├── analytics/
+│   ├── purchase/
+│   └── profile/
+├── shared/
+│   ├── widgets/
+│   ├── models/
+│   └── providers/
+└── main.dart
+```
+
+## RÈGLES DE CODAGE STRICTES
+
+### Structure et Patterns
+- TOUJOURS utiliser Clean Architecture avec séparation features/core/shared
+- Chaque feature doit avoir: models/, providers/, screens/, widgets/
+- Utiliser Provider/Riverpod pour TOUS les states globaux
+- Séparer la logique business des widgets UI
+- Créer des services singleton pour IA, stockage, audio
+
+### Nommage
+- Fichiers: snake_case (dream_entry.dart)
+- Classes: PascalCase (DreamEntry)
+- Variables/méthodes: camelCase (dreamTitle)
+- Constantes: UPPER_SNAKE_CASE (MAX_DREAMS_FREE)
+- Widgets custom: suffixe Widget (DreamCardWidget)
+
+### Gestion des Erreurs
+- TOUJOURS wrapper les appels IA dans try-catch
+- Créer des exceptions custom pour chaque service
+- Afficher des messages d'erreur user-friendly
+- Implémenter des fallbacks pour les échecs IA
+
+### Performance
+- Utiliser const constructors partout où possible
+- Lazy loading pour les listes longues
+- Cache local pour les images générées
+- Optimiser les builds avec Consumer/Selector
+
+## FONCTIONNALITÉS SPÉCIFIQUES
+
+### Service Purchase (core/services/purchase_service.dart)
+```dart
+class PurchaseService {
+  // Vérification achat premium
+  Future<bool> isPremiumPurchased()
+  
+  // Déclenchement achat
+  Future<bool> purchasePremium()
+  
+  // Restauration achats
+  Future<void> restorePurchases()
+}
+```
+
+### Modèle Dream (features/dreams/models/dream.dart)
+```dart
+class Dream {
+  String id;
+  String content;
+  String? title;
+  String? summary;
+  String? imageUrl;
+  DateTime createdAt;
+  List<String> tags;
+  Map<String, double> emotions;
+  bool isLucid;
+  bool isPremiumContent;
+}
+```
+
+### Service Gemini (core/services/gemini_service.dart)
+```dart
+class GeminiService {
+  // Génération titre/résumé
+  Future<DreamAnalysis> analyzeDream(String dreamText)
+  
+  // Génération d'image
+  Future<String> generateDreamImage(String dreamDescription)
+  
+  // Analyse symbolique premium
+  Future<SymbolicAnalysis> getSymbolicAnalysis(String dreamText)
+}
+```
+
+### Stockage Local
+- Utiliser Hive pour performance
+- Chiffrement des données sensibles
+- Sauvegarde auto toutes les 5min
+- Export/Import JSON pour premium
+
+## INTÉGRATIONS IA À IMPLÉMENTER
+
+### Prompts Optimisés (core/constants/ai_prompts.dart)
+- Génération titre: max 8 mots, créatif
+- Résumé: 2-3 phrases, capture essence
+- Tags: 5-7 mots-clés pertinents
+- Analyse symbolique: style Jung/Freud
+
+### Gestion Speech-to-Text
+- Auto-start/stop avec silence detection
+- Conversion en temps réel avec feedback visuel
+- Sauvegarde brouillon toutes les 30sec
+- Support multi-langues
+
+## UI/UX GUIDELINES
+
+### Design System
+- Material Design 3 avec thème custom
+- Mode sombre par défaut
+- Couleurs: violets/bleus profonds pour rêves
+- Animations fluides mais discrètes
+- Accessibilité WCAG AA
+
+### Navigation
+- Bottom navigation: Rêves, Stats, Profil
+- Floating action button pour nouveau rêve
+- Swipe gestures pour navigation rapide
+- Pull-to-refresh sur les listes
+
+### États de Chargement
+- Skeleton loaders pour IA
+- Progress indicators avec estimations
+- Animations de génération d'image
+- Offline mode avec sync différé
+
+## SYSTÈME PREMIUM (ACHAT UNIQUE)
+
+### Limitations Gratuit
+- 1 rêve analysé/jour
+- Images style basique uniquement
+- Stats limitées (7 derniers jours)
+- Export basique
+
+### Features Premium (9,99€ achat unique)
+- Rêves illimités
+- Tous styles d'images HD
+- Analyses symboliques avancées
+- Stats complètes + graphiques
+- Export PDF, sauvegarde cloud
+- Méditations audio exclusives
+- **Accès à vie** après achat unique
+
+## TESTS ET QUALITÉ
+
+### Tests Obligatoires
+- Unit tests pour tous les services
+- Widget tests pour écrans principaux
+- Integration tests pour flux critiques
+- Tests IA avec mocks pour CI/CD
+
+### Code Quality
+- Dart analyzer à 0 warning
+- Coverage minimum 70%
+- Documentation pour public methods
+- Code review pour features majeures
+
+## OPTIMISATIONS SPÉCIFIQUES
+
+### Performance IA
+- Cache responses Gemini (1h TTL)
+- Batch requests quand possible
+- Retry logic avec backoff
+- Rate limiting côté client
+
+### Stockage
+- Compression images générées
+- Nettoyage auto cache ancien (30j)
+- Index pour recherche rapide
+- Backup incrémental
+
+## LIBRAIRIES AUTORISÉES
+
+### Core
+- provider/riverpod (state)
+- hive/hive_flutter (db)
+- google_generative_ai (Gemini)
+- speech_to_text (audio)
+- shared_preferences (settings)
+
+### UI/Charts
+- fl_chart (graphiques)
+- flutter_staggered_animations
+- cached_network_image
+- flutter_svg
+
+### Utils
+- intl (dates/langues)
+- path_provider (fichiers)
+- share_plus (partage)
+- url_launcher (liens)
+- in_app_purchase (achats stores)
+
+## COMMANDES RAPIDES
+- Nouveau screen: "Crée l'écran [nom] avec navigation et provider"
+- Service: "Implémente le service [nom] avec gestion d'erreurs"
+- Widget: "Crée le widget [nom] réutilisable avec documentation"
+- Model: "Génère le modèle [nom] avec sérialisation JSON"
+- Premium check: "Ajoute la vérification premium à [fonctionnalité]"
+
+## RESTRICTIONS
+- JAMAIS de backend/serveur
+- PAS de données sensibles en plain text
+- PAS d'imports non-autorisés
+- PAS de logique business dans les widgets
+- PAS de magic numbers (utiliser constantes)
+
+Respecte ces règles SCRUPULEUSEMENT pour assurer cohérence et qualité du projet Dream Diary.
