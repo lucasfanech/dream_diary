@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../shared/models/dream.dart';
+import '../providers/dream_provider.dart';
+import '../providers/navigation_provider.dart';
 
 class AddDreamScreen extends StatefulWidget {
   const AddDreamScreen({super.key});
@@ -37,15 +41,56 @@ class _AddDreamScreenState extends State<AddDreamScreen> {
     }
   }
 
-  void _saveDream() {
+  Future<void> _saveDream() async {
     if (_formKey.currentState!.validate()) {
-      // TODO: Implémenter la sauvegarde du rêve
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Fonctionnalité en cours de développement'),
-          backgroundColor: AppConstants.warningColor,
-        ),
+      final dreamProvider = Provider.of<DreamProvider>(context, listen: false);
+      
+      // Créer le rêve
+      final dream = Dream(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        title: _titleController.text.trim(),
+        content: _contentController.text.trim(),
+        createdAt: DateTime.now(),
+        dreamDate: _selectedDate,
+        isLucid: _isLucid,
+        lucidityLevel: _isLucid ? _lucidityLevel : null,
+        tags: [], // TODO: Ajouter la gestion des tags
+        emotion: null, // TODO: Ajouter la sélection d'émotion
       );
+      
+      // Sauvegarder le rêve
+      final success = await dreamProvider.saveDream(dream);
+      
+      if (success) {
+        // Afficher le message de succès
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(AppConstants.successDreamSaved),
+            backgroundColor: AppConstants.successColor,
+          ),
+        );
+        
+        // Vider les champs
+        _titleController.clear();
+        _contentController.clear();
+        setState(() {
+          _selectedDate = null;
+          _isLucid = false;
+          _lucidityLevel = 0.0;
+        });
+        
+        // Retourner à l'écran d'accueil
+        final navigationProvider = Provider.of<NavigationProvider>(context, listen: false);
+        navigationProvider.goToHome();
+      } else {
+        // Afficher l'erreur
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(dreamProvider.error ?? 'Erreur lors de la sauvegarde'),
+            backgroundColor: AppConstants.errorColor,
+          ),
+        );
+      }
     }
   }
 

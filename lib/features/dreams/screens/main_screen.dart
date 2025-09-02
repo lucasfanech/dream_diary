@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../core/constants/app_constants.dart';
 import '../screens/home_screen.dart';
 import '../screens/dreams_list_screen.dart';
 import '../screens/add_dream_screen.dart';
 import '../screens/analytics_screen.dart';
 import '../screens/profile_screen.dart';
+import '../providers/navigation_provider.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -14,8 +16,6 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 0;
-  
   final List<Widget> _screens = [
     const HomeScreen(),
     const DreamsListScreen(),
@@ -26,18 +26,18 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
+    return Consumer<NavigationProvider>(
+      builder: (context, navigationProvider, child) {
+        return Scaffold(
+          body: IndexedStack(
+            index: navigationProvider.currentIndex,
+            children: _screens,
+          ),
+          bottomNavigationBar: BottomNavigationBar(
+            currentIndex: navigationProvider.currentIndex,
+            onTap: (index) {
+              navigationProvider.changeTab(index);
+            },
         type: BottomNavigationBarType.fixed,
         selectedItemColor: AppConstants.primaryColor,
         unselectedItemColor: AppConstants.textSecondaryColor,
@@ -71,6 +71,8 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ],
       ),
+    );
+      },
     );
   }
 }

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../shared/widgets/config_status_widget.dart';
+import '../providers/dream_provider.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -11,7 +14,9 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Consumer<DreamProvider>(
+      builder: (context, dreamProvider, child) {
+        return Scaffold(
       appBar: AppBar(
         title: const Text(AppConstants.profileTitle),
         actions: [
@@ -71,23 +76,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: AppConstants.paddingMedium),
-                  const Row(
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       _StatItem(
                         icon: Icons.nightlight_round,
                         label: 'Total Rêves',
-                        value: '0',
+                        value: dreamProvider.totalDreams.toString(),
                       ),
                       _StatItem(
                         icon: Icons.psychology,
                         label: 'Rêves Lucides',
-                        value: '0',
+                        value: dreamProvider.lucidDreams.toString(),
                       ),
                       _StatItem(
                         icon: Icons.local_fire_department,
                         label: 'Série Max',
-                        value: '0',
+                        value: dreamProvider.currentStreak.toString(),
                       ),
                     ],
                   ),
@@ -95,6 +100,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
           ),
+          
+          const SizedBox(height: AppConstants.paddingLarge),
+          
+          // Statut de la configuration IA
+          const ConfigStatusWidget(),
           
           const SizedBox(height: AppConstants.paddingLarge),
           
@@ -229,6 +239,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
+    );
+      },
     );
   }
 }

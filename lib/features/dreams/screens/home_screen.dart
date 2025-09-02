@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../shared/widgets/stats_card.dart';
 import '../../../shared/widgets/welcome_header.dart';
+import '../providers/dream_provider.dart';
+import '../providers/navigation_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -13,6 +16,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
+    return Consumer<DreamProvider>(
+      builder: (context, dreamProvider, child) {
     return Scaffold(
       body: SafeArea(
         child: CustomScrollView(
@@ -86,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Expanded(
                           child: StatsCard(
                             title: 'Total Rêves',
-                            value: '0',
+                            value: dreamProvider.totalDreams.toString(),
                             icon: Icons.nightlight_round,
                             color: AppConstants.dreamPurple,
                           ),
@@ -95,7 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Expanded(
                           child: StatsCard(
                             title: 'Rêves Lucides',
-                            value: '0',
+                            value: dreamProvider.lucidDreams.toString(),
                             icon: Icons.psychology,
                             color: AppConstants.dreamBlue,
                           ),
@@ -110,7 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Expanded(
                           child: StatsCard(
                             title: 'Série Actuelle',
-                            value: '0',
+                            value: dreamProvider.currentStreak.toString(),
                             icon: Icons.local_fire_department,
                             color: AppConstants.dreamPink,
                           ),
@@ -119,7 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Expanded(
                           child: StatsCard(
                             title: 'Points XP',
-                            value: '0',
+                            value: dreamProvider.experiencePoints.toString(),
                             icon: Icons.stars,
                             color: AppConstants.dreamYellow,
                           ),
@@ -139,7 +144,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         TextButton(
                           onPressed: () {
-                            // TODO: Navigation vers la liste complète
+                            // Navigation vers la liste complète
+                            final navigationProvider = Provider.of<NavigationProvider>(context, listen: false);
+                            navigationProvider.goToDreamsList();
                           },
                           child: const Text('Voir tout'),
                         ),
@@ -148,7 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     
                     const SizedBox(height: AppConstants.paddingMedium),
                     
-                    // Liste des rêves récents (vide pour l'instant)
+                    // Liste des rêves récents
                     Container(
                       height: 200,
                       decoration: BoxDecoration(
@@ -158,34 +165,68 @@ class _HomeScreenState extends State<HomeScreen> {
                           color: AppConstants.textSecondaryColor.withOpacity(0.2),
                         ),
                       ),
-                      child: const Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.nightlight_round,
-                              size: 48,
-                              color: AppConstants.textSecondaryColor,
-                            ),
-                            SizedBox(height: AppConstants.paddingMedium),
-                            Text(
-                              'Aucun rêve enregistré',
-                              style: TextStyle(
-                                color: AppConstants.textSecondaryColor,
-                                fontSize: AppConstants.fontSizeMedium,
+                      child: dreamProvider.recentDreams.isEmpty
+                          ? const Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.nightlight_round,
+                                    size: 48,
+                                    color: AppConstants.textSecondaryColor,
+                                  ),
+                                  SizedBox(height: AppConstants.paddingMedium),
+                                  Text(
+                                    'Aucun rêve enregistré',
+                                    style: TextStyle(
+                                      color: AppConstants.textSecondaryColor,
+                                      fontSize: AppConstants.fontSizeMedium,
+                                    ),
+                                  ),
+                                  SizedBox(height: AppConstants.paddingSmall),
+                                  Text(
+                                    'Commencez par ajouter votre premier rêve !',
+                                    style: TextStyle(
+                                      color: AppConstants.textSecondaryColor,
+                                      fontSize: AppConstants.fontSizeSmall,
+                                    ),
+                                  ),
+                                ],
                               ),
+                            )
+                          : ListView.builder(
+                              padding: const EdgeInsets.all(AppConstants.paddingMedium),
+                              itemCount: dreamProvider.recentDreams.length,
+                              itemBuilder: (context, index) {
+                                final dream = dreamProvider.recentDreams[index];
+                                return Card(
+                                  margin: const EdgeInsets.only(bottom: AppConstants.paddingSmall),
+                                  child: ListTile(
+                                    leading: Icon(
+                                      dream.isLucid ? Icons.psychology : Icons.nightlight_round,
+                                      color: dream.isLucid ? AppConstants.dreamBlue : AppConstants.dreamPurple,
+                                    ),
+                                    title: Text(
+                                      dream.title,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    subtitle: Text(
+                                      dream.content,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    trailing: Text(
+                                      '${dream.createdAt.day}/${dream.createdAt.month}',
+                                      style: const TextStyle(
+                                        color: AppConstants.textSecondaryColor,
+                                        fontSize: AppConstants.fontSizeSmall,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
-                            SizedBox(height: AppConstants.paddingSmall),
-                            Text(
-                              'Commencez par ajouter votre premier rêve !',
-                              style: TextStyle(
-                                color: AppConstants.textSecondaryColor,
-                                fontSize: AppConstants.fontSizeSmall,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
                     ),
                     
                     const SizedBox(height: AppConstants.paddingLarge),
@@ -202,7 +243,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         Expanded(
                           child: ElevatedButton.icon(
                             onPressed: () {
-                              // TODO: Navigation vers l'ajout de rêve
+                              // Navigation vers l'ajout de rêve
+                              final navigationProvider = Provider.of<NavigationProvider>(context, listen: false);
+                              navigationProvider.goToAddDream();
                             },
                             icon: const Icon(Icons.add),
                             label: const Text('Nouveau Rêve'),
@@ -239,6 +282,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
+    );
+      },
     );
   }
 }
