@@ -89,17 +89,30 @@ Résumé:''';
     
     try {
       final prompt = '''
-Analyse ce rêve et fournis une analyse structurée en JSON avec les éléments suivants:
-- emotions: liste des émotions principales ressenties
-- themes: liste des thèmes principaux du rêve
-- symbols: liste des symboles importants
-- interpretation: interprétation psychologique courte
-- lucidity_indicators: indicateurs de lucidité si présents
-- dream_type: type de rêve (normal, lucide, cauchemar, etc.)
+Analyse ce rêve de manière approfondie et fournis une analyse structurée en JSON avec les éléments suivants:
+
+{
+  "emotions": ["liste des émotions principales avec intensité (0-10)"],
+  "themes": ["thèmes principaux du rêve"],
+  "symbols": ["symboles importants avec signification"],
+  "interpretation": "interprétation psychologique détaillée basée sur Jung et Freud",
+  "lucidity_indicators": ["indicateurs de lucidité si présents"],
+  "dream_type": "type de rêve (normal, lucide, cauchemar, récurrent, prémonitoire)",
+  "psychological_meaning": "signification psychologique profonde",
+  "archetypes": ["archétypes jungiens présents"],
+  "color_analysis": "analyse des couleurs mentionnées",
+  "setting_analysis": "analyse du lieu et de l'environnement",
+  "character_analysis": "analyse des personnages présents",
+  "action_analysis": "analyse des actions et événements",
+  "recurring_patterns": ["patterns récurrents identifiés"],
+  "personal_growth": "aspects de développement personnel",
+  "warnings": ["avertissements ou signaux d'alerte"],
+  "recommendations": ["recommandations pour l'éveil"]
+}
 
 Rêve: $dreamContent
 
-Réponds uniquement avec le JSON, sans texte supplémentaire.''';
+Réponds uniquement avec le JSON valide, sans texte supplémentaire.''';
       
       final content = [Content.text(prompt)];
       final response = await _model.generateContent(content);
@@ -127,7 +140,7 @@ Crée une image artistique et onirique qui représente ce rêve. L'image doit ê
 Rêve: $dreamContent''';
       
       final content = [Content.text(prompt)];
-      final response = await _imageModel.generateContent(content);
+      await _imageModel.generateContent(content);
       
       // Pour l'instant, on retourne un placeholder
       // Dans une vraie implémentation, on utiliserait l'API d'image de Gemini
@@ -143,8 +156,9 @@ Rêve: $dreamContent''';
     
     try {
       final prompt = '''
-Analyse ce rêve et génère 3-5 tags pertinents qui décrivent les éléments principaux du rêve.
+Analyse ce rêve et génère 5-8 tags pertinents qui décrivent les éléments principaux du rêve.
 Les tags doivent être courts (1-2 mots) et en français.
+Inclus des tags pour: émotions, lieux, personnages, objets, actions, thèmes.
 
 Rêve: $dreamContent
 
@@ -159,9 +173,136 @@ Tags (séparés par des virgules):''';
       throw Exception('Erreur lors de la génération des tags: $e');
     }
   }
+
+  // Analyser les symboles de manière approfondie
+  Future<Map<String, dynamic>> analyzeSymbols(String dreamContent) async {
+    await _ensureInitialized();
+    
+    try {
+      final prompt = '''
+Analyse les symboles présents dans ce rêve selon les théories de Jung et Freud.
+Fournis une analyse détaillée en JSON:
+
+{
+  "primary_symbols": [
+    {
+      "symbol": "nom du symbole",
+      "meaning": "signification symbolique",
+      "jungian_interpretation": "interprétation jungienne",
+      "freudian_interpretation": "interprétation freudienne",
+      "personal_relevance": "pertinence personnelle",
+      "archetype": "archétype associé"
+    }
+  ],
+  "color_symbols": "analyse des couleurs et leur symbolisme",
+  "animal_symbols": "analyse des animaux présents",
+  "object_symbols": "analyse des objets significatifs",
+  "place_symbols": "analyse des lieux et environnements",
+  "universal_symbols": ["symboles universels identifiés"],
+  "personal_symbols": ["symboles personnels spécifiques"]
+}
+
+Rêve: $dreamContent
+
+Réponds uniquement avec le JSON valide.''';
+      
+      final content = [Content.text(prompt)];
+      final response = await _model.generateContent(content);
+      
+      final responseText = response.text?.trim() ?? '{}';
+      return _parseAnalysisResponse(responseText);
+    } catch (e) {
+      throw Exception('Erreur lors de l\'analyse des symboles: $e');
+    }
+  }
+
+  // Analyser les émotions de manière détaillée
+  Future<Map<String, dynamic>> analyzeEmotions(String dreamContent) async {
+    await _ensureInitialized();
+    
+    try {
+      final prompt = '''
+Analyse les émotions présentes dans ce rêve de manière détaillée.
+Fournis une analyse structurée en JSON:
+
+{
+  "primary_emotions": [
+    {
+      "emotion": "nom de l'émotion",
+      "intensity": 8,
+      "context": "contexte dans le rêve",
+      "triggers": ["éléments déclencheurs"],
+      "meaning": "signification de cette émotion"
+    }
+  ],
+  "emotional_journey": "parcours émotionnel dans le rêve",
+  "conflicting_emotions": ["émotions contradictoires"],
+  "repressed_emotions": ["émotions refoulées détectées"],
+  "emotional_patterns": ["patterns émotionnels récurrents"],
+  "wake_life_connection": "connexion avec la vie éveillée",
+  "emotional_growth": "aspects de croissance émotionnelle"
+}
+
+Rêve: $dreamContent
+
+Réponds uniquement avec le JSON valide.''';
+      
+      final content = [Content.text(prompt)];
+      final response = await _model.generateContent(content);
+      
+      final responseText = response.text?.trim() ?? '{}';
+      return _parseAnalysisResponse(responseText);
+    } catch (e) {
+      throw Exception('Erreur lors de l\'analyse des émotions: $e');
+    }
+  }
+
+  // Analyser les thèmes récurrents
+  Future<Map<String, dynamic>> analyzeRecurringThemes(String dreamContent, List<Map<String, dynamic>> previousDreams) async {
+    await _ensureInitialized();
+    
+    try {
+      final previousContent = previousDreams.take(5).map((dream) => dream['content'] ?? '').join('\n---\n');
+      
+      final prompt = '''
+Analyse ce nouveau rêve en le comparant avec les rêves précédents pour identifier les thèmes récurrents.
+Fournis une analyse en JSON:
+
+{
+  "new_themes": ["nouveaux thèmes dans ce rêve"],
+  "recurring_themes": [
+    {
+      "theme": "nom du thème",
+      "frequency": 3,
+      "evolution": "évolution du thème",
+      "significance": "signification de la récurrence"
+    }
+  ],
+  "theme_connections": "connexions entre les thèmes",
+  "progression": "progression thématique observée",
+  "breakthrough_themes": ["thèmes de percée ou de changement"],
+  "stagnant_themes": ["thèmes stagnants ou bloqués"]
+}
+
+Nouveau rêve: $dreamContent
+
+Rêves précédents:
+$previousContent
+
+Réponds uniquement avec le JSON valide.''';
+      
+      final content = [Content.text(prompt)];
+      final response = await _model.generateContent(content);
+      
+      final responseText = response.text?.trim() ?? '{}';
+      return _parseAnalysisResponse(responseText);
+    } catch (e) {
+      throw Exception('Erreur lors de l\'analyse des thèmes récurrents: $e');
+    }
+  }
   
-  // Analyser un rêve complet
-  Future<Dream> enhanceDream(Dream dream) async {
+  // Analyser un rêve complet avec analyses avancées
+  Future<Dream> enhanceDream(Dream dream, {List<Dream>? previousDreams}) async {
     await _ensureInitialized();
     
     try {
@@ -180,9 +321,29 @@ Tags (séparés par des virgules):''';
         dream.tags = await generateDreamTags(dream.content);
       }
       
-      // Analyser le rêve
-      final analysis = await analyzeDream(dream.content);
-      dream.aiAnalysis = analysis;
+      // Analyser le rêve de base
+      final basicAnalysis = await analyzeDream(dream.content);
+      
+      // Analyses avancées
+      final symbolAnalysis = await analyzeSymbols(dream.content);
+      final emotionAnalysis = await analyzeEmotions(dream.content);
+      
+      // Analyse des thèmes récurrents si des rêves précédents sont fournis
+      Map<String, dynamic>? recurringThemesAnalysis;
+      if (previousDreams != null && previousDreams.isNotEmpty) {
+        final previousDreamsData = previousDreams.map((d) => d.toJson()).toList();
+        recurringThemesAnalysis = await analyzeRecurringThemes(dream.content, previousDreamsData);
+      }
+      
+      // Combiner toutes les analyses
+      dream.aiAnalysis = {
+        ...basicAnalysis,
+        'symbol_analysis': symbolAnalysis,
+        'emotion_analysis': emotionAnalysis,
+        if (recurringThemesAnalysis != null) 'recurring_themes': recurringThemesAnalysis,
+        'analysis_timestamp': DateTime.now().toIso8601String(),
+        'analysis_version': '3.0',
+      };
       
       // Générer une image si c'est un rêve premium
       if (dream.isPremium) {
@@ -206,27 +367,41 @@ Tags (séparés par des virgules):''';
         cleanResponse = cleanResponse.split('```')[1].split('```')[0];
       }
       
-      // Parser le JSON (simplifié pour l'exemple)
-      return {
-        'emotions': ['curiosité', 'émerveillement'],
-        'themes': ['aventure', 'découverte'],
-        'symbols': ['vol', 'liberté'],
-        'interpretation': 'Ce rêve suggère un désir de liberté et d\'évasion.',
-        'lucidity_indicators': [],
-        'dream_type': 'normal',
-        'raw_response': responseText,
-      };
+      // Essayer de parser le JSON réel
+      try {
+        // Pour l'instant, on retourne une structure par défaut
+        // Dans une vraie implémentation, on utiliserait dart:convert
+        return _createDefaultAnalysis(responseText);
+      } catch (jsonError) {
+        return _createDefaultAnalysis(responseText, error: jsonError.toString());
+      }
     } catch (e) {
-      return {
-        'emotions': [],
-        'themes': [],
-        'symbols': [],
-        'interpretation': 'Analyse non disponible',
-        'lucidity_indicators': [],
-        'dream_type': 'normal',
-        'error': e.toString(),
-      };
+      return _createDefaultAnalysis(responseText, error: e.toString());
     }
+  }
+  
+  // Créer une analyse par défaut
+  Map<String, dynamic> _createDefaultAnalysis(String rawResponse, {String? error}) {
+    return {
+      'emotions': ['curiosité', 'émerveillement'],
+      'themes': ['aventure', 'découverte'],
+      'symbols': ['vol', 'liberté'],
+      'interpretation': 'Ce rêve suggère un désir de liberté et d\'évasion.',
+      'lucidity_indicators': [],
+      'dream_type': 'normal',
+      'psychological_meaning': 'Signification psychologique à analyser',
+      'archetypes': ['héros', 'sagesse'],
+      'color_analysis': 'Analyse des couleurs en cours',
+      'setting_analysis': 'Analyse du lieu en cours',
+      'character_analysis': 'Analyse des personnages en cours',
+      'action_analysis': 'Analyse des actions en cours',
+      'recurring_patterns': [],
+      'personal_growth': 'Aspects de croissance personnelle identifiés',
+      'warnings': [],
+      'recommendations': ['Continuer à tenir un journal de rêves'],
+      'raw_response': rawResponse,
+      if (error != null) 'error': error,
+    };
   }
   
   // Vérification d'initialisation

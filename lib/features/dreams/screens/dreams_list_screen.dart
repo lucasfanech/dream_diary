@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../shared/models/dream.dart';
 import '../providers/dream_provider.dart';
+import 'detailed_analysis_screen.dart';
 
 class DreamsListScreen extends StatefulWidget {
   const DreamsListScreen({super.key});
@@ -157,11 +158,28 @@ class _DreamsListScreenState extends State<DreamsListScreen> {
                               ),
                               trailing: PopupMenuButton<String>(
                                 onSelected: (value) {
-                                  if (value == 'delete') {
+                                  if (value == 'analyze') {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => DetailedAnalysisScreen(dream: dream),
+                                      ),
+                                    );
+                                  } else if (value == 'delete') {
                                     _showDeleteDialog(context, dream);
                                   }
                                 },
                                 itemBuilder: (context) => [
+                                  const PopupMenuItem(
+                                    value: 'analyze',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.psychology, color: AppConstants.primaryColor),
+                                        SizedBox(width: AppConstants.paddingSmall),
+                                        Text('Analyse détaillée'),
+                                      ],
+                                    ),
+                                  ),
                                   const PopupMenuItem(
                                     value: 'delete',
                                     child: Row(
@@ -175,11 +193,10 @@ class _DreamsListScreenState extends State<DreamsListScreen> {
                                 ],
                               ),
                               onTap: () {
-                                // TODO: Navigation vers les détails du rêve
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Détails du rêve en cours de développement'),
-                                    backgroundColor: AppConstants.warningColor,
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => DetailedAnalysisScreen(dream: dream),
                                   ),
                                 );
                               },

@@ -20,6 +20,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             title: const Text(AppConstants.analyticsTitle),
             actions: [
               IconButton(
+                icon: const Icon(Icons.psychology),
+                onPressed: () => _runAdvancedAnalyses(dreamProvider),
+                tooltip: 'Analyses avancées',
+              ),
+              IconButton(
                 icon: const Icon(Icons.refresh),
                 onPressed: () => dreamProvider.refresh(),
               ),
@@ -435,5 +440,35 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         labelStyle: TextStyle(color: AppConstants.dreamIndigo),
       );
     }).toList();
+  }
+  
+  // Lancer les analyses avancées
+  void _runAdvancedAnalyses(DreamProvider dreamProvider) async {
+    if (dreamProvider.dreams.length < 3) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Au moins 3 rêves sont nécessaires pour les analyses avancées'),
+          backgroundColor: AppConstants.warningColor,
+        ),
+      );
+      return;
+    }
+    
+    try {
+      await dreamProvider.runAdvancedAnalyses();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Analyses avancées terminées !'),
+          backgroundColor: AppConstants.successColor,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur lors des analyses: $e'),
+          backgroundColor: AppConstants.errorColor,
+        ),
+      );
+    }
   }
 }
