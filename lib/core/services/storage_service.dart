@@ -1,6 +1,7 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../shared/models/dream.dart';
 import '../../shared/models/user.dart';
+import '../utils/type_utils.dart';
 
 class StorageService {
   static const String _dreamsBoxName = 'dreams';
@@ -199,7 +200,7 @@ class StorageService {
       
       // Importer l'utilisateur
       if (data['user'] != null) {
-        final userData = data['user'] as Map<String, dynamic>;
+        final userData = TypeUtils.safeMapFromDynamic(data['user']);
         final user = User.fromJson(userData);
         await saveUser(user);
       }

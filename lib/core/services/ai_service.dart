@@ -1,4 +1,5 @@
 import 'package:google_generative_ai/google_generative_ai.dart';
+import 'dart:convert';
 import '../../shared/models/dream.dart';
 import '../constants/api_config.dart';
 import 'config_service.dart';
@@ -119,7 +120,7 @@ Réponds uniquement avec le JSON valide, sans texte supplémentaire.''';
       
       // Parser le JSON de réponse
       final responseText = response.text?.trim() ?? '{}';
-      return _parseAnalysisResponse(responseText);
+      return parseAnalysisResponse(responseText);
     } catch (e) {
       throw Exception('Erreur lors de l\'analyse du rêve: $e');
     }
@@ -210,7 +211,7 @@ Réponds uniquement avec le JSON valide.''';
       final response = await _model.generateContent(content);
       
       final responseText = response.text?.trim() ?? '{}';
-      return _parseAnalysisResponse(responseText);
+      return parseAnalysisResponse(responseText);
     } catch (e) {
       throw Exception('Erreur lors de l\'analyse des symboles: $e');
     }
@@ -251,7 +252,7 @@ Réponds uniquement avec le JSON valide.''';
       final response = await _model.generateContent(content);
       
       final responseText = response.text?.trim() ?? '{}';
-      return _parseAnalysisResponse(responseText);
+      return parseAnalysisResponse(responseText);
     } catch (e) {
       throw Exception('Erreur lors de l\'analyse des émotions: $e');
     }
@@ -295,7 +296,7 @@ Réponds uniquement avec le JSON valide.''';
       final response = await _model.generateContent(content);
       
       final responseText = response.text?.trim() ?? '{}';
-      return _parseAnalysisResponse(responseText);
+      return parseAnalysisResponse(responseText);
     } catch (e) {
       throw Exception('Erreur lors de l\'analyse des thèmes récurrents: $e');
     }
@@ -357,31 +358,92 @@ Réponds uniquement avec le JSON valide.''';
   }
   
   // Parser la réponse d'analyse JSON
-  Map<String, dynamic> _parseAnalysisResponse(String responseText) {
+  Map<String, dynamic> parseAnalysisResponse(String responseText) {
+    print('🔍 [AI_SERVICE] Réponse brute de l\'IA:');
+    print('=' * 50);
+    print(responseText);
+    print('=' * 50);
+    
     try {
       // Nettoyer la réponse pour extraire le JSON
       String cleanResponse = responseText;
       if (cleanResponse.contains('```json')) {
         cleanResponse = cleanResponse.split('```json')[1].split('```')[0];
+        print('🧹 [AI_SERVICE] JSON extrait des backticks:');
+        print(cleanResponse);
       } else if (cleanResponse.contains('```')) {
         cleanResponse = cleanResponse.split('```')[1].split('```')[0];
+        print('🧹 [AI_SERVICE] Contenu extrait des backticks:');
+        print(cleanResponse);
       }
       
       // Essayer de parser le JSON réel
       try {
-        // Pour l'instant, on retourne une structure par défaut
-        // Dans une vraie implémentation, on utiliserait dart:convert
-        return _createDefaultAnalysis(responseText);
+        print('🔧 [AI_SERVICE] Tentative de parsing JSON réel...');
+        final parsedJson = jsonDecode(cleanResponse);
+        print('✅ [AI_SERVICE] Parsing JSON réussi !');
+        print('📊 [AI_SERVICE] Données parsées: $parsedJson');
+        
+        // Valider et enrichir la structure
+        return _validateAndEnrichAnalysis(parsedJson, responseText);
       } catch (jsonError) {
+        print('❌ [AI_SERVICE] Erreur de parsing JSON: $jsonError');
+        print('⚠️ [AI_SERVICE] Utilisation de la structure par défaut');
         return _createDefaultAnalysis(responseText, error: jsonError.toString());
       }
     } catch (e) {
+      print('❌ [AI_SERVICE] Erreur générale: $e');
       return _createDefaultAnalysis(responseText, error: e.toString());
+    }
+  }
+  
+  // Valider et enrichir l'analyse parsée
+  Map<String, dynamic> _validateAndEnrichAnalysis(Map<String, dynamic> parsedJson, String rawResponse) {
+    print('🔍 [AI_SERVICE] Validation et enrichissement de l\'analyse...');
+    
+    // Créer une structure complète avec des valeurs par défaut
+    final enrichedAnalysis = {
+      'emotions': _ensureList(parsedJson['emotions'], ['curiosité', 'émerveillement']),
+      'themes': _ensureList(parsedJson['themes'], ['aventure', 'découverte']),
+      'symbols': _ensureList(parsedJson['symbols'], ['vol', 'liberté']),
+      'interpretation': parsedJson['interpretation'] ?? 'Ce rêve suggère un désir de liberté et d\'évasion.',
+      'lucidity_indicators': _ensureList(parsedJson['lucidity_indicators'], []),
+      'dream_type': parsedJson['dream_type'] ?? 'normal',
+      'psychological_meaning': parsedJson['psychological_meaning'] ?? 'Signification psychologique à analyser',
+      'archetypes': _ensureList(parsedJson['archetypes'], ['héros', 'sagesse']),
+      'color_analysis': parsedJson['color_analysis'] ?? 'Analyse des couleurs en cours',
+      'setting_analysis': parsedJson['setting_analysis'] ?? 'Analyse du lieu en cours',
+      'character_analysis': parsedJson['character_analysis'] ?? 'Analyse des personnages en cours',
+      'action_analysis': parsedJson['action_analysis'] ?? 'Analyse des actions en cours',
+      'recurring_patterns': _ensureList(parsedJson['recurring_patterns'], []),
+      'personal_growth': parsedJson['personal_growth'] ?? 'Aspects de croissance personnelle identifiés',
+      'warnings': _ensureList(parsedJson['warnings'], []),
+      'recommendations': _ensureList(parsedJson['recommendations'], ['Continuer à tenir un journal de rêves']),
+      'raw_response': rawResponse,
+      'parsed_successfully': true,
+      'parsing_timestamp': DateTime.now().toIso8601String(),
+    };
+    
+    print('✅ [AI_SERVICE] Analyse enrichie créée avec succès');
+    print('📊 [AI_SERVICE] Champs enrichis: ${enrichedAnalysis.keys}');
+    
+    return enrichedAnalysis;
+  }
+  
+  // S'assurer qu'une valeur est une liste
+  List _ensureList(dynamic value, List defaultValue) {
+    if (value is List) {
+      return value;
+    } else if (value is String) {
+      return [value];
+    } else {
+      return defaultValue;
     }
   }
   
   // Créer une analyse par défaut
   Map<String, dynamic> _createDefaultAnalysis(String rawResponse, {String? error}) {
+    print('⚠️ [AI_SERVICE] Création d\'une analyse par défaut');
     return {
       'emotions': ['curiosité', 'émerveillement'],
       'themes': ['aventure', 'découverte'],
@@ -400,6 +462,8 @@ Réponds uniquement avec le JSON valide.''';
       'warnings': [],
       'recommendations': ['Continuer à tenir un journal de rêves'],
       'raw_response': rawResponse,
+      'parsed_successfully': false,
+      'parsing_timestamp': DateTime.now().toIso8601String(),
       if (error != null) 'error': error,
     };
   }

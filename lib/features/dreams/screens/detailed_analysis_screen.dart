@@ -4,6 +4,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../shared/models/dream.dart';
 import '../providers/dream_provider.dart';
 import '../widgets/analysis_widgets.dart';
+import '../../../core/utils/type_utils.dart';
 
 class DetailedAnalysisScreen extends StatefulWidget {
   final Dream dream;
@@ -153,7 +154,7 @@ class _DetailedAnalysisScreenState extends State<DetailedAnalysisScreen>
       return _buildNoAnalysisWidget();
     }
     
-    final symbolAnalysis = analysis['symbol_analysis'] as Map<String, dynamic>;
+    final symbolAnalysis = TypeUtils.safeMapFromDynamic(analysis['symbol_analysis']);
     
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppConstants.paddingMedium),
@@ -207,7 +208,7 @@ class _DetailedAnalysisScreenState extends State<DetailedAnalysisScreen>
       return _buildNoAnalysisWidget();
     }
     
-    final emotionAnalysis = analysis['emotion_analysis'] as Map<String, dynamic>;
+    final emotionAnalysis = TypeUtils.safeMapFromDynamic(analysis['emotion_analysis']);
     
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppConstants.paddingMedium),

@@ -272,6 +272,12 @@ Réponds uniquement avec le JSON valide.''';
   
   // Parser les réponses JSON
   Map<String, dynamic> _parseEmotionalEvolutionResponse(String responseText) {
+    print('🎭 [EMOTION_SERVICE] Réponse d\'évolution émotionnelle:');
+    print('=' * 50);
+    print(responseText);
+    print('=' * 50);
+    print('⚠️ [EMOTION_SERVICE] Utilisation de la structure par défaut');
+    
     try {
       return {
         'emotional_timeline': [

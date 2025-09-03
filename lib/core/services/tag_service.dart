@@ -200,16 +200,24 @@ Tags suggérés (séparés par des virgules):''';
   
   // Parser les réponses JSON
   Map<String, dynamic> _parseCategorizationResponse(String responseText) {
+    print('🏷️ [TAG_SERVICE] Réponse de catégorisation:');
+    print('=' * 50);
+    print(responseText);
+    print('=' * 50);
+    
     try {
       // Nettoyer la réponse
       String cleanResponse = responseText;
       if (cleanResponse.contains('```json')) {
         cleanResponse = cleanResponse.split('```json')[1].split('```')[0];
+        print('🧹 [TAG_SERVICE] JSON extrait: $cleanResponse');
       } else if (cleanResponse.contains('```')) {
         cleanResponse = cleanResponse.split('```')[1].split('```')[0];
+        print('🧹 [TAG_SERVICE] Contenu extrait: $cleanResponse');
       }
       
       // Structure par défaut
+      print('⚠️ [TAG_SERVICE] Utilisation de la structure par défaut');
       return {
         'primary_category': 'rêve normal',
         'subcategories': ['aventure', 'découverte'],

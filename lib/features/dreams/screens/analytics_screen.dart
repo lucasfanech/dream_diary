@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/utils/type_utils.dart';
 import '../providers/dream_provider.dart';
 
 class AnalyticsScreen extends StatefulWidget {
@@ -206,10 +207,43 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   Widget _buildEmotionsSection(DreamProvider dreamProvider) {
     final emotions = <String, int>{};
     for (final dream in dreamProvider.dreams) {
-      if (dream.aiAnalysis != null && dream.aiAnalysis!['emotions'] != null) {
-        final dreamEmotions = List<String>.from(dream.aiAnalysis!['emotions']);
-        for (final emotion in dreamEmotions) {
-          emotions[emotion] = (emotions[emotion] ?? 0) + 1;
+      if (dream.aiAnalysis != null) {
+        // Gérer les nouvelles données d'émotions structurées
+        if (dream.aiAnalysis!['primary_emotions'] != null) {
+          try {
+            final primaryEmotionsData = dream.aiAnalysis!['primary_emotions'];
+            if (primaryEmotionsData is List) {
+              final primaryEmotions = TypeUtils.safeMapListFromDynamic(primaryEmotionsData);
+              for (final emotionData in primaryEmotions) {
+                final emotion = TypeUtils.safeStringFromDynamic(emotionData['emotion']);
+                if (emotion.isNotEmpty) {
+                  emotions[emotion] = (emotions[emotion] ?? 0) + 1;
+                }
+              }
+            } else if (primaryEmotionsData is Map) {
+              // Si c'est un Map, essayer d'extraire l'émotion
+              print('⚠️ [ANALYTICS] primary_emotions est un Map au lieu d\'une List: $primaryEmotionsData');
+              final emotion = TypeUtils.safeStringFromDynamic(primaryEmotionsData['emotion']);
+              if (emotion.isNotEmpty) {
+                emotions[emotion] = (emotions[emotion] ?? 0) + 1;
+              }
+            }
+          } catch (e) {
+            print('❌ [ANALYTICS] Erreur lors du traitement des émotions primaires: $e');
+          }
+        }
+        // Gérer les anciennes données d'émotions simples
+        else if (dream.aiAnalysis!['emotions'] != null) {
+          try {
+            final dreamEmotions = TypeUtils.safeStringListFromDynamic(dream.aiAnalysis!['emotions']);
+            for (final emotion in dreamEmotions) {
+              if (emotion.isNotEmpty) {
+                emotions[emotion] = (emotions[emotion] ?? 0) + 1;
+              }
+            }
+          } catch (e) {
+            print('❌ [ANALYTICS] Erreur lors du traitement des émotions simples: $e');
+          }
         }
       }
     }
@@ -249,10 +283,65 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   Widget _buildThemesSection(DreamProvider dreamProvider) {
     final themes = <String, int>{};
     for (final dream in dreamProvider.dreams) {
-      if (dream.aiAnalysis != null && dream.aiAnalysis!['themes'] != null) {
-        final dreamThemes = List<String>.from(dream.aiAnalysis!['themes']);
-        for (final theme in dreamThemes) {
-          themes[theme] = (themes[theme] ?? 0) + 1;
+      if (dream.aiAnalysis != null) {
+        // Gérer les nouvelles données de thèmes structurées
+        if (dream.aiAnalysis!['new_themes'] != null) {
+          try {
+            final newThemesData = dream.aiAnalysis!['new_themes'];
+            if (newThemesData is List) {
+              final newThemes = TypeUtils.safeStringListFromDynamic(newThemesData);
+              for (final theme in newThemes) {
+                if (theme.isNotEmpty) {
+                  themes[theme] = (themes[theme] ?? 0) + 1;
+                }
+              }
+            } else if (newThemesData is String) {
+              // Si c'est une string, l'ajouter directement
+              print('⚠️ [ANALYTICS] new_themes est une String au lieu d\'une List: $newThemesData');
+              if (newThemesData.isNotEmpty) {
+                themes[newThemesData] = (themes[newThemesData] ?? 0) + 1;
+              }
+            }
+          } catch (e) {
+            print('❌ [ANALYTICS] Erreur lors du traitement des nouveaux thèmes: $e');
+          }
+        }
+        // Gérer les thèmes récurrents
+        if (dream.aiAnalysis!['recurring_themes'] != null) {
+          try {
+            final recurringThemesData = dream.aiAnalysis!['recurring_themes'];
+            if (recurringThemesData is List) {
+              final recurringThemes = TypeUtils.safeMapListFromDynamic(recurringThemesData);
+              for (final themeData in recurringThemes) {
+                final theme = TypeUtils.safeStringFromDynamic(themeData['theme']);
+                if (theme.isNotEmpty) {
+                  themes[theme] = (themes[theme] ?? 0) + 1;
+                }
+              }
+            } else if (recurringThemesData is Map) {
+              // Si c'est un Map, essayer d'extraire les thèmes
+              print('⚠️ [ANALYTICS] recurring_themes est un Map au lieu d\'une List: $recurringThemesData');
+              final theme = TypeUtils.safeStringFromDynamic(recurringThemesData['theme']);
+              if (theme.isNotEmpty) {
+                themes[theme] = (themes[theme] ?? 0) + 1;
+              }
+            }
+          } catch (e) {
+            print('❌ [ANALYTICS] Erreur lors du traitement des thèmes récurrents: $e');
+          }
+        }
+        // Gérer les anciennes données de thèmes simples
+        else if (dream.aiAnalysis!['themes'] != null) {
+          try {
+            final dreamThemes = TypeUtils.safeStringListFromDynamic(dream.aiAnalysis!['themes']);
+            for (final theme in dreamThemes) {
+              if (theme.isNotEmpty) {
+                themes[theme] = (themes[theme] ?? 0) + 1;
+              }
+            }
+          } catch (e) {
+            print('❌ [ANALYTICS] Erreur lors du traitement des thèmes simples: $e');
+          }
         }
       }
     }
